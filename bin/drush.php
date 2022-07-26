@@ -3,7 +3,6 @@
 use Composer\XdebugHandler\XdebugHandler;
 use DrupalFinder\DrupalFinder;
 use Webmozart\PathUtil\Path;
-use Humbug\SelfUpdate\Updater;
 
 set_time_limit(0);
 
@@ -35,7 +34,6 @@ $VAR = FALSE;
 $VERSION = FALSE;
 $VERSION_LAUNCHER = FALSE;
 $DRUSH_VERSION = NULL;
-$SELF_UPDATE = FALSE;
 $FALLBACK = getenv('DRUSH_LAUNCHER_FALLBACK') ?: FALSE;
 
 foreach ($_SERVER['argv'] as $arg) {
@@ -60,9 +58,6 @@ foreach ($_SERVER['argv'] as $arg) {
       case "--drush-launcher-version":
         $VERSION_LAUNCHER = TRUE;
         break;
-      case "self-update":
-        $SELF_UPDATE = TRUE;
-        break;
     }
     if (substr($arg, 0, 7) == "--root=") {
       $ROOT = substr($arg, 7);
@@ -79,32 +74,12 @@ else {
 
 $drupalFinder = new DrupalFinder();
 
-if ($VERSION || $VERSION_LAUNCHER || $DEBUG || $SELF_UPDATE) {
+if ($VERSION || $VERSION_LAUNCHER || $DEBUG) {
   echo "Drush Launcher Version: {$DRUSH_LAUNCHER_VERSION}" .  PHP_EOL;
 }
 
 if ($VERSION_LAUNCHER) {
   exit(0);
-}
-
-if ($SELF_UPDATE) {
-  if ($DRUSH_LAUNCHER_VERSION === '@' . 'git-version' . '@') {
-    echo "Automatic update not supported.\n";
-    exit(1);
-  }
-  $updater = new Updater(null, false);
-  $updater->setStrategy(Updater::STRATEGY_GITHUB);
-  $updater->getStrategy()->setPackageName('drush/drush-launcher');
-  $updater->getStrategy()->setPharName('drush.phar');
-  $updater->getStrategy()->setCurrentLocalVersion($DRUSH_LAUNCHER_VERSION);
-  try {
-    $result = $updater->update();
-    echo $result ? "Updated!\n" : "No update needed!\n";
-    exit(0);
-  } catch (\Exception $e) {
-    echo "Automatic update failed, please download the latest version from https://github.com/drush-ops/drush-launcher/releases\n";
-    exit(1);
-  }
 }
 
 if ($DEBUG) {
